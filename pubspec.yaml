@@ -1,0 +1,22 @@
+name: pg_job_queue
+version: 0.0.1
+description: A simple job queue on top of PostgreSQL. Named queues, multiple workers, JSON payloads.
+homepage: "https://github.com/f3ath/dart-pg-job-queue"
+
+environment:
+  sdk: '>=3.5.0 <4.0.0'
+
+dependencies:
+  postgres: ^3.2.1
+
+dev_dependencies:
+  lints: ^4.0.0
+  test: ^1.20.1
+  coverage: ^1.9.0
+  check_coverage: ^0.0.4
+  cider: ^0.2.7
+
+cider:
+  link_template:
+    tag: https://github.com/f3ath/dart-pg-job-queue/releases/tag/%tag%
+    diff: https://github.com/f3ath/dart-pg-job-queue/compare/%from%...%to%
