@@ -33,7 +33,7 @@ void main() async {
 }
 ```
 The code above creates a new job queue with default settings. The `init` method creates the necessary tables in the database,
-and is idempotent, so it can be called multiple times without any issues. It is sage to call `init` every time the application starts.
+and is idempotent, so it can be called multiple times without any issues. It is safe to call `init` every time the application starts.
 When a new minor version is released, the `init` method is expected to automatically update the database schema to the new version.
 
 By default, the job queue uses the `jobs` table in the `public` schema. The default queue name is `default`. 
