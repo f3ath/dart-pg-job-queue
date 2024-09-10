@@ -248,7 +248,7 @@ extension on ResultRow {
           Job(id, queue, payload,
               JobStatus.values.firstWhere((e) => e.name == status),
               result: result, worker: worker, priority: priority),
-        // coverage:ignore
+        // coverage:ignore-line
         _ => throw StateError('Invalid row: $this'),
       };
 }
