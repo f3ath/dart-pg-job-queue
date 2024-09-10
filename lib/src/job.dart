@@ -1,4 +1,3 @@
-
 import 'package:pg_job_queue/src/job_status.dart';
 
 /// A job model.
@@ -35,4 +34,3 @@ class Job {
   /// The job priority.
   final int priority;
 }
-
