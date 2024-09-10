@@ -80,7 +80,7 @@ await jobs.complete(job.id, result: {'key': 'value'});
 
 ## Clean up
 To remove completed jobs from the database, use the `deleteCompleted` method. It removes all completed jobs that are older than the specified duration.
-Use the `deleteFailed` method to remove the failed jobs as well. The `limit` can be specified to delete jobs in smaller chunks.
+Use the `deleteFailed` parameter to remove the failed jobs as well. The `limit` can be specified to delete jobs in smaller chunks.
 It is recommended to run this method periodically for better performance.
 
 ```dart
@@ -88,7 +88,7 @@ await jobs.deleteCompleted(Duration(days: 30), limit: 1000);
 ```
 
 ## Statistics
-Some statistics are available through the `countByQueueByStatus` method. It returns a map with the number of jobs in each queue and status.
+Some basic statistics are available through the `countByQueueByStatus` method. It returns a map with the number of jobs in each queue and status.
 
 ```dart
 final stats = await jobs.countByQueueByStatus();
