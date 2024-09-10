@@ -21,7 +21,7 @@ void main() async {
     test('completed', () async {
       final connection = await createConnection();
       final queue = PgJobQueue(connection, schema: schema);
-      final payload = {'foo': 123, 'bar': 'baz.md'};
+      final payload = {'foo': 123, 'bar': 'baz'};
       final id = await queue.schedule(payload);
 
       await queue.fetch(id).then((job) {
@@ -54,7 +54,7 @@ void main() async {
     test('failed', () async {
       final connection = await createConnection();
       final queue = PgJobQueue(connection, schema: schema);
-      final payload = {'foo': 123, 'bar': 'baz.md'};
+      final payload = {'foo': 123, 'bar': 'baz'};
       final id = await queue.schedule(payload);
 
       await queue.fetch(id).then((job) {
@@ -135,7 +135,7 @@ void main() async {
     test('Priority must be within range', () async {
       final connection = await createConnection();
       final queue = PgJobQueue(connection, schema: schema);
-      final payload = {'foo': 123, 'bar': 'baz.md'};
+      final payload = {'foo': 123, 'bar': 'baz'};
       expect(
         () => queue.schedule(payload, priority: PgJobQueue.minPriority - 1),
         throwsArgumentError,
@@ -151,7 +151,7 @@ void main() async {
     test('Can not complete a scheduled job', () async {
       final connection = await createConnection();
       final queue = PgJobQueue(connection, schema: schema);
-      final payload = {'foo': 123, 'bar': 'baz.md'};
+      final payload = {'foo': 123, 'bar': 'baz'};
       final id = await queue.schedule(payload);
       expectLater(queue.complete(id), throwsStateError);
       expectLater(queue.fail(id), throwsStateError);
@@ -161,7 +161,7 @@ void main() async {
     test('Can not fail a scheduled job', () async {
       final connection = await createConnection();
       final queue = PgJobQueue(connection, schema: schema);
-      final payload = {'foo': 123, 'bar': 'baz.md'};
+      final payload = {'foo': 123, 'bar': 'baz'};
       final id = await queue.schedule(payload);
       expectLater(queue.complete(id), throwsStateError);
       expectLater(queue.fail(id), throwsStateError);
@@ -171,7 +171,7 @@ void main() async {
     test('Can not complete a completed job', () async {
       final connection = await createConnection();
       final queue = PgJobQueue(connection, schema: schema);
-      final payload = {'foo': 123, 'bar': 'baz.md'};
+      final payload = {'foo': 123, 'bar': 'baz'};
       final id = await queue.schedule(payload);
       await queue.acquire(worker: 'worker1');
       await queue.complete(id);
@@ -181,7 +181,7 @@ void main() async {
     test('Can not complete a failed job', () async {
       final connection = await createConnection();
       final queue = PgJobQueue(connection, schema: schema);
-      final payload = {'foo': 123, 'bar': 'baz.md'};
+      final payload = {'foo': 123, 'bar': 'baz'};
       final id = await queue.schedule(payload);
       await queue.acquire(worker: 'worker1');
       await queue.fail(id);
@@ -193,7 +193,7 @@ void main() async {
   test('Higher priority gets acquired first', () async {
     final connection = await createConnection();
     final queue = PgJobQueue(connection, schema: schema);
-    final payload = {'foo': 123, 'bar': 'baz.md'};
+    final payload = {'foo': 123, 'bar': 'baz'};
     for (var i = 0; i < 10; i++) {
       await queue.schedule(payload);
       await queue.schedule(payload, priority: 1);
@@ -212,7 +212,7 @@ void main() async {
   test('Can use min and max priority', () async {
     final connection = await createConnection();
     final queue = PgJobQueue(connection, schema: schema);
-    final payload = {'foo': 123, 'bar': 'baz.md'};
+    final payload = {'foo': 123, 'bar': 'baz'};
     await queue.schedule(payload, priority: PgJobQueue.minPriority);
     await queue.schedule(payload, priority: PgJobQueue.maxPriority);
     await queue.acquire().then((job) {
@@ -228,7 +228,7 @@ void main() async {
   test('Can acquire a job with a specific queue', () async {
     final connection = await createConnection();
     final queue = PgJobQueue(connection, schema: schema);
-    final payload = {'foo': 123, 'bar': 'baz.md'};
+    final payload = {'foo': 123, 'bar': 'baz'};
     await queue.schedule(payload, queue: 'foo');
     await queue.schedule(payload, queue: 'bar');
     expect(await queue.acquire(), isNull);
@@ -245,7 +245,7 @@ void main() async {
     const batchSize = 1000;
     final connection = await createConnection();
     final queue = PgJobQueue(connection, schema: schema);
-    final payload = {'foo': 123, 'bar': 'baz.md'};
+    final payload = {'foo': 123, 'bar': 'baz'};
     final ids = <String>[];
     final futures = <Future>[];
     for (var i = 0; i < batchSize; i++) {
@@ -267,7 +267,7 @@ void main() async {
   test('Count by queue by status', () async {
     final connection = await createConnection();
     final queue = PgJobQueue(connection, schema: schema);
-    final payload = {'foo': 123, 'bar': 'baz.md'};
+    final payload = {'foo': 123, 'bar': 'baz'};
     for (var i = 0; i < 5; i++) {
       await queue.schedule(payload);
       await queue.schedule(payload, queue: 'foo');
@@ -287,19 +287,55 @@ void main() async {
 
     final counts = await queue.countByQueueByStatus();
 
-    print('Status: "${JobStatus.acquired}"');
     expect(
         counts,
         equals({
-          'bar': {
-            'acquired': 1,
-            'completed': 1,
-            'failed': 1,
-            'scheduled': 2
-          },
+          'bar': {'acquired': 1, 'completed': 1, 'failed': 1, 'scheduled': 2},
           'baz': {'acquired': 1, 'scheduled': 4},
           'default': {'scheduled': 5},
           'foo': {'completed': 3, 'failed': 2}
         }));
+  });
+
+  test('Can cleanup old jobs', () async {
+    final connection = await createConnection();
+    final queue = PgJobQueue(connection, schema: schema);
+    final payload = {'foo': 123, 'bar': 'baz'};
+    for (var i = 0; i < 5; i++) {
+      await queue.schedule(payload);
+    }
+
+    await queue.acquire().then((job) => queue.complete(job!.id));
+    await queue.acquire().then((job) => queue.complete(job!.id));
+    await Future.delayed(Duration(milliseconds: 100));
+    await queue.acquire().then((job) => queue.complete(job!.id));
+    await queue.acquire().then((job) => queue.fail(job!.id));
+    await Future.delayed(Duration(milliseconds: 100));
+    await queue.acquire().then((job) => queue.fail(job!.id));
+    await Future.delayed(Duration(milliseconds: 100));
+
+    await queue.deleteCompleted(Duration(milliseconds: 300)).then((count) {
+      expect(count, equals(2));
+    });
+    await queue.countByQueueByStatus().then((count) {
+      expect(count['default']?['completed'], equals(1));
+      expect(count['default']?['failed'], equals(2));
+    });
+    await queue.deleteCompleted(Duration(milliseconds: 200)).then((count) {
+      expect(count, equals(1));
+    });
+    await queue.countByQueueByStatus().then((count) {
+      expect(count['default']?['completed'], isNull);
+      expect(count['default']?['failed'], equals(2));
+    });
+    await queue
+        .deleteCompleted(Duration(milliseconds: 200), includeFailed: true)
+        .then((count) {
+      expect(count, equals(1));
+    });
+    await queue.countByQueueByStatus().then((count) {
+      expect(count['default']?['completed'], isNull);
+      expect(count['default']?['failed'], equals(1));
+    });
   });
 }

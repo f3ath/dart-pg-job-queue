@@ -10,6 +10,8 @@ dependencies:
   postgres: ^3.2.1
   uuid: ^4.5.0
   collection: ^1.19.0
+  migrant: ^0.3.0
+  migrant_db_postgresql: ^0.2.1
 
 dev_dependencies:
   lints: ^4.0.0
