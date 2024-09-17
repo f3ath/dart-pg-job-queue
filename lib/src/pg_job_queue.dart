@@ -25,7 +25,7 @@ class PgJobQueue {
   })  : _uniqueId = uniqueId ?? Uuid().v4,
         _defaultQueue = defaultQueue,
         _database = Database(PostgreSQLGateway(_connection,
-            schema: schema, tablePrefix: '_${table}_migrations')),
+            schema: schema, table: '${table}_schema_version')),
         _insert = Sql.named('''
 INSERT
 INTO "$schema"."$table" (id, queue, payload, priority, status)
